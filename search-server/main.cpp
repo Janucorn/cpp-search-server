@@ -90,7 +90,7 @@ public:
     }
 
 private:
-    set<string> stop_words_;
+    set<string> stop_words_; // словарь стоп-слов
     map<string, map<int, double>> word_to_documents_freq_ ;// ключ- слово, значение - вхожий словарь: ключ -  id документов, значение - индекс TF
     int document_count_ = 0; // количество документов для вычисления индекса IDF
    
@@ -115,30 +115,60 @@ private:
         return words;
     }
 
+    struct QueryWord {
+        string data;
+        bool is_minus;
+        bool is_stop;
+    };
+
+    // Функция разбора слова: это слово = минус-слово или стоп-слово?
+    
+    QueryWord ParseQueryWord(string text) const {
+        QueryWord query;
+        
+        query.is_minus = false;
+        if (text[0] == '-') {
+            query.is_minus = true;
+            text = text.substr(1);
+            // .substr(pos) возвращает подстроку с начальной
+            // позицией [pos]   
+        }
+        query.data = text;
+        query.is_stop = IsStopWord(text);
+        return query;
+    }
+
     Query ParseQuery(const string& text) const {
         Query query_words;
-        for (string word : SplitIntoWordsNoStop(text)) {
-            if (word[0] == '-') {
-                query_words.minus_words.insert(word.substr(1));
-            } else {
-                query_words.plus_words.insert(word);
+        for (const string& word : SplitIntoWordsNoStop(text)) {
+            QueryWord parsed_word = ParseQueryWord(word);
+            if (!parsed_word.is_stop) {
+                if (parsed_word.is_minus) {
+                    query_words.minus_words.insert(parsed_word.data);
+                }
+                else {
+                    query_words.plus_words.insert(parsed_word.data);
+                }
             }
         }
         return query_words;
     }
 
+    // функция расчета индекса IDF (inverse document frequency): кол-во всех документов в базе делят на
+    // кол-во документов, содержащих слово
+    double ComputeInverseDocumentFreq(const string& word) const {
+        return log(1.0 * document_count_ / word_to_documents_freq_.at(word).size());
+    }
+
     vector<Document> FindAllDocuments(const Query& query_words) const {
         vector<Document> matched_documents;
         map<int, double> document_to_relevance; // ключ - id документа, значение - сумма индексов TF IDF
-        double idf_index = 0.0;
         vector<int> erase_document_id ;
         //term_freq - это индекс TF = слово встречающееся количество раз в документе / общее число слов в документе
         for (const string& word : query_words.plus_words) {
                 if (word_to_documents_freq_.count(word) != 0) {
-                    idf_index = log(1.0 * document_count_ / word_to_documents_freq_.at(word).size());
                     for (const auto& [document_id, term_freq] : word_to_documents_freq_.at(word)) {
-                        document_to_relevance[document_id] += term_freq * idf_index; 
-                    
+                        document_to_relevance[document_id] += term_freq * ComputeInverseDocumentFreq(word); 
                 }
             }
         }
@@ -182,3 +212,18 @@ int main() {
              << "relevance = "s << relevance << " }"s << endl;
     }
 }
+
+
+/* вводные данные для примера:
+is are was a an in the with near at
+3
+a colorful parrot with green wings and red tail is lost
+a grey hound with black ears is found at the railway station
+a white cat with long furry tail is found near the red square
+white cat long tail
+*/
+
+/* на выходе должно получиться:
+{ document_id = 2, relevance = 0.462663 }
+{ document_id = 0, relevance = 0.0506831 }
+*/
