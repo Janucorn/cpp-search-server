@@ -1,4 +1,5 @@
 #include <algorithm>
+//#include <cassert>
 #include <cmath>
 #include <cstdlib>
 #include <iomanip>
@@ -544,3 +545,15 @@ int main() {
     */
     return 0;
 }
+
+/*Вывод: 
+ACTUAL by default:
+{ document_id = 1, relevance = 0.866434, rating = 5 }
+{ document_id = 0, relevance = 0.173287, rating = 2 }
+{ document_id = 2, relevance = 0.173287, rating = -1 }
+BANNED:
+{ document_id = 3, relevance = 0.231049, rating = 9 }
+Even ids:
+{ document_id = 0, relevance = 0.173287, rating = 2 }
+{ document_id = 2, relevance = 0.173287, rating = -1 }
+*/
