@@ -336,15 +336,22 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
 // Тест проверяет, что поисковая система исключает документы,
 // содержащие минус-слова
 void TestExcludeDocumentsWithMinusWords() {
-    const string content = "cat in the city"s;
-    const int doc_id = 43;
-    const vector<int> ratings = { 1, 2, 3 };
+    const string content1 = "cat in the city"s;
+    const int doc_id1 = 43;
+    const vector<int> ratings1 = { 1, 2, 3 };
+
+    const string content2 = "cat with emotional damage"s;
+    const int doc_id2 = 44;
+    const vector<int> ratings2 = { 5, 2 };
     // убеждаемся, что документ с минус-словом не выводится в результате
     {
         SearchServer server;
         const string query = "cat in the -city"s;
-        server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
-        ASSERT(server.FindTopDocuments(query, DocumentStatus::ACTUAL).empty());
+        server.AddDocument(doc_id1, content1, DocumentStatus::ACTUAL, ratings1);
+        server.AddDocument(doc_id2, content2, DocumentStatus::ACTUAL, ratings2);
+        
+        const auto& documents = server.FindTopDocuments(query, DocumentStatus::ACTUAL);
+        ASSERT((documents.size() == 1) && (documents[0].id == doc_id2));
     }
 }
 
@@ -406,12 +413,19 @@ void TestSortingDocumentsByRelevance() {
     const int doc_id1 = 46;
     const vector<int> ratings1 = { 3, 3, 3 };
 
+    const string content2 = "the emotional damage"s;
+    const int doc_id2 = 47;
+    const vector<int> ratings2 = { 5 };
+
     {
         SearchServer server;
         server.AddDocument(doc_id0, content0, DocumentStatus::ACTUAL, ratings0);
         server.AddDocument(doc_id1, content1, DocumentStatus::ACTUAL, ratings1);
-        const auto& documents = server.FindTopDocuments("cat in"s);
+        server.AddDocument(doc_id2, content2, DocumentStatus::ACTUAL, ratings2);
+        const auto& documents = server.FindTopDocuments("cat in the cafe"s);
+        ASSERT(documents.size() == 3);
         ASSERT(documents[0].relevance >= documents[1].relevance);
+        ASSERT(documents[1].relevance >= documents[2].relevance);
     }
 }
 
@@ -424,8 +438,8 @@ void TestRatingCompute() {
 
     SearchServer server;
     server.AddDocument(doc_id0, content0, DocumentStatus::ACTUAL, ratings0);
-
-    ASSERT_EQUAL(server.FindTopDocuments("cat"s)[0].rating, 2);
+    ASSERT(!server.FindTopDocuments("cat"s).empty());
+    ASSERT_EQUAL(server.FindTopDocuments("cat"s)[0].rating, ( 1 + 2 + 3) / 3);
 }
 
 void TestFilteringDocumentsByPredicate() {
@@ -455,6 +469,7 @@ void TestFilteringDocumentsByPredicate() {
     // без предиката возвращает документы со статусом ACTUAL
     {
         const vector<Document>& documents = server.FindTopDocuments("gray cat"s);
+        ASSERT(!documents.empty());
         ASSERT_EQUAL(documents[0].id, doc_id0);
     }
 
@@ -462,7 +477,7 @@ void TestFilteringDocumentsByPredicate() {
     {
         const vector<Document>& documents = server.FindTopDocuments("gray cat"s,
             [](int document_id, DocumentStatus status, int rating) { return status != DocumentStatus::ACTUAL; });
-        ASSERT_EQUAL(documents.size(), 3);
+        ASSERT_EQUAL(documents.size(), 3u);
         ASSERT(documents[0].id != doc_id0
             && documents[1].id != doc_id0
             && documents[2].id != doc_id0);
@@ -472,7 +487,7 @@ void TestFilteringDocumentsByPredicate() {
     {
         const vector<Document>& documents = server.FindTopDocuments("gray cat"s,
             [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; });
-        ASSERT_EQUAL(documents.size(), 2);
+        ASSERT_EQUAL(documents.size(), 2u);
         ASSERT(documents[0].id % 2 == 0);
         ASSERT(documents[1].id % 2 == 0);
 
@@ -500,6 +515,7 @@ void TestRelevanceCompute() {
     // TF(with@doc_id1) = 1/6; IDF(with) = log(2/1)
     const double relev0 = log(1) / 4; // 0
     const double relev1 = log(2) / 6 + log(1) / 4; // 0,115524
+    ASSERT_EQUAL(documents.size(), 2u);
     ASSERT(documents[0].relevance == relev1);
     ASSERT(documents[1].relevance == relev0);
 }
