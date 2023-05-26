@@ -351,7 +351,8 @@ void TestExcludeDocumentsWithMinusWords() {
         server.AddDocument(doc_id2, content2, DocumentStatus::ACTUAL, ratings2);
         
         const auto& documents = server.FindTopDocuments(query, DocumentStatus::ACTUAL);
-        ASSERT((documents.size() == 1) && (documents[0].id == doc_id2));
+        ASSERT_EQUAL(documents.size(), 1u);
+        ASSERT(documents[0].id == doc_id2);
     }
 }
 
@@ -423,7 +424,7 @@ void TestSortingDocumentsByRelevance() {
         server.AddDocument(doc_id1, content1, DocumentStatus::ACTUAL, ratings1);
         server.AddDocument(doc_id2, content2, DocumentStatus::ACTUAL, ratings2);
         const auto& documents = server.FindTopDocuments("cat in the cafe"s);
-        ASSERT(documents.size() == 3);
+        ASSERT(documents.size() == 3u);
         ASSERT(documents[0].relevance >= documents[1].relevance);
         ASSERT(documents[1].relevance >= documents[2].relevance);
     }
@@ -478,9 +479,9 @@ void TestFilteringDocumentsByPredicate() {
         const vector<Document>& documents = server.FindTopDocuments("gray cat"s,
             [](int document_id, DocumentStatus status, int rating) { return status != DocumentStatus::ACTUAL; });
         ASSERT_EQUAL(documents.size(), 3u);
-        ASSERT(documents[0].id != doc_id0
-            && documents[1].id != doc_id0
-            && documents[2].id != doc_id0);
+        ASSERT(documents[0].id != doc_id0);
+        ASSERT(documents[1].id != doc_id0);
+        ASSERT(documents[2].id != doc_id0);
     }
 
     // Проверка вывода по четным/нечетным id 
@@ -495,6 +496,54 @@ void TestFilteringDocumentsByPredicate() {
             [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 1; });
         ASSERT(documents1[0].id % 2 == 1);
         ASSERT(documents1[1].id % 2 == 1);
+    }
+}
+
+void TestFindDocumentsWithStatus() {
+    const int doc_id0 = 48;
+    const string content0 = "cat in the city"s;
+    const vector<int> ratings0 = { 1, 2, 3 };
+
+    const int doc_id1 = 49;
+    const string content1 = "cat with emotional damage"s;
+    const vector<int> ratings1 = { 3, 3, 3 };
+
+    const int doc_id2 = 50;
+    const string content2 = "the snyder cat"s;
+    const vector<int> ratings2 = { 4, 5, 6 };
+
+    const int doc_id3 = 51;
+    const string content3 = "video with cat"s;
+    const vector<int> ratings3 = { 1, 1 };
+
+    SearchServer server;
+    server.AddDocument(doc_id0, content0, DocumentStatus::ACTUAL, ratings0);
+    server.AddDocument(doc_id1, content1, DocumentStatus::BANNED, ratings1);
+    server.AddDocument(doc_id2, content2, DocumentStatus::REMOVED, ratings2);
+    server.AddDocument(doc_id3, content3, DocumentStatus::IRRELEVANT, ratings3);
+    // Проверка, что возвращен документ со статусом ACTUAL
+    {
+        const auto documents = server.FindTopDocuments("little cat"s, DocumentStatus::ACTUAL);
+        ASSERT_EQUAL(documents.size(), 1u);
+        ASSERT(documents[0].id == doc_id0);
+    }
+    // Проверка, что возвращен документ со статусом BANNED
+    {
+        const auto documents = server.FindTopDocuments("little cat"s, DocumentStatus::BANNED);
+        ASSERT_EQUAL(documents.size(), 1u);
+        ASSERT(documents[0].id == doc_id1);
+    }
+    // Проверка, что возвращен документ со статусом REMOVED
+    {
+        const auto documents = server.FindTopDocuments("little cat"s, DocumentStatus::REMOVED);
+        ASSERT_EQUAL(documents.size(), 1u);
+        ASSERT(documents[0].id == doc_id2);
+    }
+    // Проверка, что возвращен документ со статусом IRRELEVANT
+    {
+        const auto documents = server.FindTopDocuments("little cat"s, DocumentStatus::IRRELEVANT);
+        ASSERT_EQUAL(documents.size(), 1u);
+        ASSERT(documents[0].id == doc_id3);
     }
 }
 
@@ -529,6 +578,7 @@ void TestSearchServer() {
     RUN_TEST(TestSortingDocumentsByRelevance);
     RUN_TEST(TestRatingCompute);
     RUN_TEST(TestFilteringDocumentsByPredicate);
+    RUN_TEST(TestFindDocumentsWithStatus);
     RUN_TEST(TestRelevanceCompute);
 }
 
