@@ -245,7 +245,7 @@ private:
     map<string, map<int, double>> word_to_document_freqs_;
     map<int, DocumentData> documents_;
 
-    // проверка слова на отсутствие спецсимволов
+    // РїСЂРѕРІРµСЂРєР° СЃР»РѕРІР° РЅР° РѕС‚СЃСѓС‚СЃС‚РІРёРµ СЃРїРµС†СЃРёРјРІРѕР»РѕРІ
     static bool IsValidWord(const string& word) {
         // A valid word must not contain special characters
         return none_of(word.begin(), word.end(), [](char c) {
@@ -363,7 +363,7 @@ private:
     }
 };
 
-// ==================== для примера =========================
+// ==================== РґР»В¤ РїСЂРёРјРµСЂР° =========================
 
 void PrintDocument(const Document& document) {
     cout << "{ "s
@@ -375,19 +375,19 @@ void PrintDocument(const Document& document) {
 int main() {
     try {
         setlocale(LC_ALL, "Russian");
-        SearchServer search_server("и в на"s);
-        search_server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-        search_server.AddDocument(1, "пушистый пёс и модный ошейник"s, DocumentStatus::ACTUAL, { 1, 2 });
-        search_server.AddDocument(-1, "пушистый пёс и модный ошейник"s, DocumentStatus::ACTUAL, { 1, 2 });
-        search_server.AddDocument(3, "большой пёс скво\x12рец"s, DocumentStatus::ACTUAL, { 1, 3, 2 });
-        const auto documents = search_server.FindTopDocuments("--пушистый"s);
+        SearchServer search_server("Рё РІ РЅР°"s);
+        search_server.AddDocument(1, "РїСѓС€РёСЃС‚С‹Р№ РєРѕС‚ РїСѓС€РёСЃС‚С‹Р№ С…РІРѕСЃС‚"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
+        search_server.AddDocument(1, "РїСѓС€РёСЃС‚С‹Р№ РїР„СЃ Рё РјРѕРґРЅС‹Р№ РѕС€РµР№РЅРёРє"s, DocumentStatus::ACTUAL, { 1, 2 });
+        search_server.AddDocument(-1, "РїСѓС€РёСЃС‚С‹Р№ РїР„СЃ Рё РјРѕРґРЅС‹Р№ РѕС€РµР№РЅРёРє"s, DocumentStatus::ACTUAL, { 1, 2 });
+        search_server.AddDocument(3, "Р±РѕР»СЊС€РѕР№ РїР„СЃ СЃРєРІРѕ\x12СЂРµС†"s, DocumentStatus::ACTUAL, { 1, 3, 2 });
+        const auto documents = search_server.FindTopDocuments("--РїСѓС€РёСЃС‚С‹Р№"s);
         for (const Document& document : documents) {
             PrintDocument(document);
         }
     } catch(invalid_argument& e) {
-        cout << "Ошибка: "s << e.what() << endl;
+        cout << "СњС€РёР±РєР°: "s << e.what() << endl;
     }
     catch (out_of_range& e) {
-        cout << "Ошибка: "s << e.what() << endl;
+        cout << "СњС€РёР±РєР°: "s << e.what() << endl;
     }
 }
