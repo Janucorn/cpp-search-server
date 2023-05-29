@@ -152,7 +152,7 @@ public:
         return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
     }
 
-    // метод, позволяющий получить идентификатор документа по его порядковому номеру
+    // ╨╝╨╡╤В╨╛╨┤, ╨┐╨╛╨╖╨▓╨╛╨╗╤П╤О╤Й╨╕╨╣ ╨┐╨╛╨╗╤Г╤З╨╕╤В╤М ╨╕╨┤╨╡╨╜╤В╨╕╤Д╨╕╨║╨░╤В╨╛╤А ╨┤╨╛╨║╤Г╨╝╨╡╨╜╤В╨░ ╨┐╨╛ ╨╡╨│╨╛ ╨┐╨╛╤А╤П╨┤╨║╨╛╨▓╨╛╨╝╤Г ╨╜╨╛╨╝╨╡╤А╤Г
     int GetDocumentId(int index) const {
         return documents_id_.at(index);
     }
@@ -195,7 +195,7 @@ private:
     map<int, DocumentData> documents_;
     vector<int> documents_id_;
 
-    // проверка слова на отсутствие спецсимволов
+    // ╨┐╤А╨╛╨▓╨╡╤А╨║╨░ ╤Б╨╗╨╛╨▓╨░ ╨╜╨░ ╨╛╤В╤Б╤Г╤В╤Б╤В╨▓╨╕╨╡ ╤Б╨┐╨╡╤Ж╤Б╨╕╨╝╨▓╨╛╨╗╨╛╨▓
     static bool IsValidWord(const string& word) {
         // A valid word must not contain special characters
         return none_of(word.begin(), word.end(), [](char c) {
@@ -312,7 +312,7 @@ private:
     }
 };
 
-// ==================== для примера =========================
+// ==================== ╨┤╨╗╤П ╨┐╤А╨╕╨╝╨╡╤А╨░ =========================
 
 void PrintDocument(const Document& document) {
     cout << "{ "s
@@ -323,19 +323,19 @@ void PrintDocument(const Document& document) {
 
 int main() {
     try {
-        SearchServer search_server("и в на"s);
-        search_server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-        search_server.AddDocument(1, "пушистый пёс и модный ошейник"s, DocumentStatus::ACTUAL, { 1, 2 });
-        search_server.AddDocument(-1, "пушистый пёс и модный ошейник"s, DocumentStatus::ACTUAL, { 1, 2 });
-        search_server.AddDocument(3, "большой пёс скво\x12рец"s, DocumentStatus::ACTUAL, { 1, 3, 2 });
-        const auto documents = search_server.FindTopDocuments("--пушистый"s);
+        SearchServer search_server("╨╕ ╨▓ ╨╜╨░"s);
+        search_server.AddDocument(1, "╨┐╤Г╤И╨╕╤Б╤В╤Л╨╣ ╨║╨╛╤В ╨┐╤Г╤И╨╕╤Б╤В╤Л╨╣ ╤Е╨▓╨╛╤Б╤В"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
+        search_server.AddDocument(1, "╨┐╤Г╤И╨╕╤Б╤В╤Л╨╣ ╨┐╤С╤Б ╨╕ ╨╝╨╛╨┤╨╜╤Л╨╣ ╨╛╤И╨╡╨╣╨╜╨╕╨║"s, DocumentStatus::ACTUAL, { 1, 2 });
+        search_server.AddDocument(-1, "╨┐╤Г╤И╨╕╤Б╤В╤Л╨╣ ╨┐╤С╤Б ╨╕ ╨╝╨╛╨┤╨╜╤Л╨╣ ╨╛╤И╨╡╨╣╨╜╨╕╨║"s, DocumentStatus::ACTUAL, { 1, 2 });
+        search_server.AddDocument(3, "╨▒╨╛╨╗╤М╤И╨╛╨╣ ╨┐╤С╤Б ╤Б╨║╨▓╨╛\x12╤А╨╡╤Ж"s, DocumentStatus::ACTUAL, { 1, 3, 2 });
+        const auto documents = search_server.FindTopDocuments("--╨┐╤Г╤И╨╕╤Б╤В╤Л╨╣"s);
         for (const Document& document : documents) {
             PrintDocument(document);
         }
     } catch(invalid_argument& e) {
-        cout << "Ошибка: "s << e.what() << endl;
+        cout << "╨Ю╤И╨╕╨▒╨║╨░: "s << e.what() << endl;
     }
     catch (out_of_range& e) {
-        cout << "Ошибка: "s << e.what() << endl;
+        cout << "╨Ю╤И╨╕╨▒╨║╨░: "s << e.what() << endl;
     }
 }
