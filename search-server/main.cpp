@@ -1,6 +1,3 @@
-#include <algorithm>
-#include <cmath>
-#include <deque>
 #include "document.h"
 #include "paginator.h"
 #include "request_queue.h"
