@@ -5,68 +5,71 @@
 #include <string>
 #include <deque>
 
-// Определяет сколько было запросов, на которые ничего не нашлось
+// РћРїСЂРµРґРµР»СЏРµС‚ СЃРєРѕР»СЊРєРѕ Р±С‹Р»Рѕ Р·Р°РїСЂРѕСЃРѕРІ, РЅР° РєРѕС‚РѕСЂС‹Рµ РЅРёС‡РµРіРѕ РЅРµ РЅР°С€Р»РѕСЃСЊ
 class RequestQueue {
     
 public:
     explicit RequestQueue(const SearchServer& search_server);
-    // сделаем "обёртки" для всех методов поиска, чтобы сохранять результаты для нашей статистики
+    // СЃРґРµР»Р°РµРј "РѕР±С‘СЂС‚РєРё" РґР»СЏ РІСЃРµС… РјРµС‚РѕРґРѕРІ РїРѕРёСЃРєР°, С‡С‚РѕР±С‹ СЃРѕС…СЂР°РЅСЏС‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚С‹ РґР»СЏ РЅР°С€РµР№ СЃС‚Р°С‚РёСЃС‚РёРєРё
     template <typename DocumentPredicate>
-    std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate)
-    {
-        // увеличваем время за каждый запрос
-        ++step_time_;
-        // удаляем старые запросы
-        if (step_time_ > min_in_day_) {
-            if (requests_.front().count > 1) {
-                --requests_.front().count;
-            }
-            else {
-                requests_.pop_front();
-            }
-        }
-        // результаты поиска запроса
-        auto documents = search_server_.FindTopDocuments(raw_query, document_predicate);
-        // обработка пустого ответа на запрос
-        if (documents.empty()) {
-            if (requests_.empty() || requests_.back().query != empty_request_) {
-                requests_.push_back({ empty_request_, 1 });
-            }
-            else {
-                ++requests_.back().count;
-            }
-        }
-        // обработка непустого ответа на запрос
-        else {
-            if (requests_.empty() || requests_.back().query != raw_query) {
-                requests_.push_back({ raw_query, 1 });
-            }
-            else {
-                ++requests_.back().count;
-            }
-        }
-        return documents;
-    }
-
+    std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate);
+   
     std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentStatus status);
 
     std::vector<Document> AddFindRequest(const std::string& raw_query);
     
-    // определение пустых результатов на запрос
+    // РѕРїСЂРµРґРµР»РµРЅРёРµ РїСѓСЃС‚С‹С… СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ РЅР° Р·Р°РїСЂРѕСЃ
     int GetNoResultRequests() const;
     
 private:
     struct QueryResult {
-        // определите, что должно быть в структуре
-        std::string query; //запрос
-        int count;  // количество запросов
+        // РѕРїСЂРµРґРµР»РёС‚Рµ, С‡С‚Рѕ РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ РІ СЃС‚СЂСѓРєС‚СѓСЂРµ
+        std::string query; //Р·Р°РїСЂРѕСЃ
+        int count;  // РєРѕР»РёС‡РµСЃС‚РІРѕ Р·Р°РїСЂРѕСЃРѕРІ
     };
     std::deque<QueryResult> requests_;
     const static int min_in_day_ = 1440;
-    // возможно, здесь вам понадобится что-то ещё
+    // РІРѕР·РјРѕР¶РЅРѕ, Р·РґРµСЃСЊ РІР°Рј РїРѕРЅР°РґРѕР±РёС‚СЃСЏ С‡С‚Рѕ-С‚Рѕ РµС‰С‘
     const SearchServer& search_server_;
     std::vector<Document> documents_;
-    int step_time_ = 0;
+    uint64_t step_time_ = 0;
     
     std::string empty_request_ = "empty request";
 };
+
+template <typename DocumentPredicate>
+std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate)
+{
+    // СѓРІРµР»РёС‡РІР°РµРј РІСЂРµРјСЏ Р·Р° РєР°Р¶РґС‹Р№ Р·Р°РїСЂРѕСЃ
+    ++step_time_;
+    // СѓРґР°Р»СЏРµРј СЃС‚Р°СЂС‹Рµ Р·Р°РїСЂРѕСЃС‹
+    if (step_time_ > min_in_day_) {
+        if (requests_.front().count > 1) {
+            --requests_.front().count;
+        }
+        else {
+            requests_.pop_front();
+        }
+    }
+    // СЂРµР·СѓР»СЊС‚Р°С‚С‹ РїРѕРёСЃРєР° Р·Р°РїСЂРѕСЃР°
+    auto documents = search_server_.FindTopDocuments(raw_query, document_predicate);
+    // РѕР±СЂР°Р±РѕС‚РєР° РїСѓСЃС‚РѕРіРѕ РѕС‚РІРµС‚Р° РЅР° Р·Р°РїСЂРѕСЃ
+    if (documents.empty()) {
+        if (requests_.empty() || requests_.back().query != empty_request_) {
+            requests_.push_back({ empty_request_, 1 });
+        }
+        else {
+            ++requests_.back().count;
+        }
+    }
+    // РѕР±СЂР°Р±РѕС‚РєР° РЅРµРїСѓСЃС‚РѕРіРѕ РѕС‚РІРµС‚Р° РЅР° Р·Р°РїСЂРѕСЃ
+    else {
+        if (requests_.empty() || requests_.back().query != raw_query) {
+            requests_.push_back({ raw_query, 1 });
+        }
+        else {
+            ++requests_.back().count;
+        }
+    }
+    return documents;
+}

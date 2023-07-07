@@ -1,6 +1,6 @@
 #include "request_queue.h"
 
-// Определяет сколько было запросов, на которые ничего не нашлось
+// РћРїСЂРµРґРµР»СЏРµС‚ СЃРєРѕР»СЊРєРѕ Р±С‹Р»Рѕ Р·Р°РїСЂРѕСЃРѕРІ, РЅР° РєРѕС‚РѕСЂС‹Рµ РЅРёС‡РµРіРѕ РЅРµ РЅР°С€Р»РѕСЃСЊ
     RequestQueue::RequestQueue(const SearchServer& search_server)
         : search_server_(search_server)
     {
@@ -16,7 +16,7 @@
     std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query) {
         return AddFindRequest(raw_query, DocumentStatus::ACTUAL);
     }
-    // определение пустых результатов на запрос
+    // РѕРїСЂРµРґРµР»РµРЅРёРµ РїСѓСЃС‚С‹С… СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ РЅР° Р·Р°РїСЂРѕСЃ
     int RequestQueue::GetNoResultRequests() const {
         int empty_request_count = 0;
         for (const auto& [request, count] : requests_) {

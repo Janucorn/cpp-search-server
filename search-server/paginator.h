@@ -42,7 +42,7 @@ public:
         auto page_begin = range_begin;
 
         for (size_t pages = distance(range_begin, range_end); pages > 0;) {
-            // заполняем всю страницу оставшимися результатами
+            // Р·Р°РїРѕР»РЅСЏРµРј РІСЃСЋ СЃС‚СЂР°РЅРёС†Сѓ РѕСЃС‚Р°РІС€РёРјРёСЃСЏ СЂРµР·СѓР»СЊС‚Р°С‚Р°РјРё
             if (static_cast<size_t>(distance(page_begin, range_end)) < page_size) {
                 documents_.push_back(IteratorRange{ page_begin, range_end });
                 return;
@@ -50,7 +50,7 @@ public:
             auto page_end = page_begin + page_size;
             IteratorRange<It> page(page_begin, page_end);
             documents_.push_back(page);
-            // смещаем начало новой страницы на размер страницы
+            // СЃРјРµС‰Р°РµРј РЅР°С‡Р°Р»Рѕ РЅРѕРІРѕР№ СЃС‚СЂР°РЅРёС†С‹ РЅР° СЂР°Р·РјРµСЂ СЃС‚СЂР°РЅРёС†С‹
             advance(page_begin, page_size);
             pages -= page_size;
         }

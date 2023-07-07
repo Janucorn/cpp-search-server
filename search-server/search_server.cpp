@@ -1,6 +1,6 @@
+#include <numeric>
 #include "search_server.h"
 #include "document.h"
-
 
 SearchServer::SearchServer(const std::string& stop_words_text) 
     : SearchServer(
@@ -11,9 +11,13 @@ SearchServer::SearchServer(const std::string& stop_words_text)
 void SearchServer::AddDocument(int document_id, const std::string& document, DocumentStatus status,
     const std::vector<int>& ratings) {
     
-    if ((document_id < 0) || (documents_.count(document_id) > 0)) {
+    if (document_id < 0) {
         using namespace std::string_literals;
         throw std::invalid_argument("Invalid document_id"s);
+    }
+    if (documents_.count(document_id) > 0) {
+        using namespace std::string_literals;
+        throw std::invalid_argument("Invalid document_id. ID already exists"s);
     }
     const auto words = SplitIntoWordsNoStop(document);
 
@@ -32,10 +36,6 @@ std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_quer
         });
 }
 
-std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query) const {
-    return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
-}
-
 int SearchServer::GetDocumentCount() const {
     return documents_.size();
 }
@@ -44,7 +44,7 @@ int SearchServer::GetDocumentId(int index) const {
     return document_ids_.at(index);
 }
 
-std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument(const std::string& raw_query,
+SearchServer::MatchedDocuments SearchServer::MatchDocument(const std::string& raw_query,
     int document_id) const {
     const auto query = ParseQuery(raw_query);
 
@@ -99,10 +99,8 @@ int SearchServer::ComputeAverageRating(const std::vector<int>& ratings) {
     if (ratings.empty()) {
         return 0;
     }
-    int rating_sum = 0;
-    for (const int rating : ratings) {
-        rating_sum += rating;
-    }
+    int rating_sum = std::accumulate(ratings.begin(), ratings.end(), 0);
+    
     return rating_sum / static_cast<int>(ratings.size());
 }
 
