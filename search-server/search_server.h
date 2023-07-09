@@ -2,7 +2,6 @@
 #include "document.h"
 #include "string_processing.h"
 #include "read_input_functions.h"
-#include "string_processing.h"
 
 #include <algorithm>
 #include <cmath>
@@ -25,14 +24,23 @@ public:
     void AddDocument(int document_id, const std::string& document, DocumentStatus status, const std::vector<int>& ratings);
 
     template <typename DocumentPredicate>
-    std::vector<Document> FindTopDocuments(const std::string& raw_query,
-        DocumentPredicate document_predicate) const;
+    std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const;
     
     std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentStatus status = DocumentStatus::ACTUAL) const;
 
     int GetDocumentCount() const;
 
-    int GetDocumentId(int index) const;
+    //int GetDocumentId(int index) const;
+
+    std::vector<int>::const_iterator begin() const;
+
+    std::vector<int>::const_iterator end() const;
+
+    //Метод получения частот слов по id документа
+    const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
+
+    //Метод удаления документов из поискового сервера
+    void RemoveDocument(int document_id);
 
     using MatchedDocuments = std::tuple<std::vector<std::string>, DocumentStatus>;
     MatchedDocuments MatchDocument(const std::string& raw_query, int document_id) const;
@@ -41,10 +49,16 @@ private:
     struct DocumentData {
         int rating;
         DocumentStatus status;
+        //частота слов документа
+        std::map<std::string, double> word_freqs;
     };
+    //Список стоп-слов
     const std::set<std::string> stop_words_;
+    //Частота слов по id документов
     std::map<std::string, std::map<int, double>> word_to_document_freqs_;
+    //Список id, рейтинга и статуса документов
     std::map<int, DocumentData> documents_;
+    //Список id документов
     std::vector<int> document_ids_;
 
     bool IsStopWord(const std::string& word) const;
@@ -80,9 +94,9 @@ private:
 
 template <typename StringContainer>
 SearchServer::SearchServer(const StringContainer& stop_words)
-    : SearchServer::stop_words_(MakeUniqueNonEmptyStrings(stop_words))  // Extract non-empty stop words
+    : stop_words_(MakeUniqueNonEmptyStrings(stop_words))  // Extract non-empty stop words
 {
-    if (!all_of(stop_words_.begin(), stop_words_.end(), IsValidWord)) {
+    if (!std::all_of(stop_words_.begin(), stop_words_.end(), IsValidWord)) {
         using namespace std::string_literals;
         throw std::invalid_argument("Some of stop words are invalid"s);
     }
